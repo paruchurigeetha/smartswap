@@ -1,0 +1,132 @@
+/* 🌈 Background */
+body {
+  background: linear-gradient(135deg, #f0fdf4, #e6f4ea);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* 🟢 Navbar */
+.navbar {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* 🧊 Card Styling */
+.card {
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+/* ✨ Hover Effect */
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* 🖼 Image Hover Zoom */
+.card img {
+  transition: 0.3s;
+}
+.card img:hover {
+  transform: scale(1.08);
+}
+
+/* 💰 Price */
+.text-success {
+  font-size: 20px;
+}
+
+/* 🔴 MRP */
+.text-danger del {
+  opacity: 0.6;
+}
+
+/* 🎯 Buttons */
+.btn {
+  border-radius: 10px;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+/* 🛒 Primary Button */
+.btn-primary {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border: none;
+}
+
+/* ❤️ Wishlist */
+.btn-outline-danger:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* ✏ Edit */
+.btn-warning {
+  background: linear-gradient(90deg, #facc15, #eab308);
+  border: none;
+}
+
+/* 🗑 Delete */
+.btn-danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  border: none;
+}
+
+/* 🔍 View */
+.btn-outline-info:hover {
+  background: #0ea5e9;
+  color: white;
+}
+
+/* ✨ Smooth animation */
+.item-card {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* 📱 MOBILE RESPONSIVE FIX */
+@media (max-width: 768px) {
+
+  /* Cards full width */
+  .item-card {
+    width: 100%;
+  }
+
+  /* Reduce image height */
+  .item-card img {
+    height: 150px !important;
+  }
+
+  /* Buttons spacing */
+  .btn {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  /* Navbar buttons wrap */
+  .navbar .btn {
+    margin-bottom: 5px;
+  }
+
+  /* Inputs full width */
+  input, select {
+    width: 100% !important;
+  }
+
+  /* Reduce heading size */
+  h3, h4, h5 {
+    font-size: 18px;
+  }
+
+}

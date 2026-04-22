@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+  <title>Chats</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="container mt-4">
+
+<h3>💬 Your Chats</h3>
+
+<div id="chatList"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDY-2fpS9LqM8f92TOuHPpJO4FJuDOcp4U",
+  authDomain: "smartswap-5176e.firebaseapp.com",
+  projectId: "smartswap-5176e"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+let currentUser;
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user.email;
+    loadChats();
+  }
+});
+
+function loadChats() {
+  const box = document.getElementById("chatList");
+
+  firebase.firestore().collection("messages")
+    .orderBy("time", "desc")
+    .onSnapshot(snapshot => {
+
+      box.innerHTML = "";
+
+      let chats = {};
+
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+
+        // only messages related to user
+        if (msg.sender !== currentUser && msg.receiver !== currentUser) return;
+
+        const other = msg.sender === currentUser ? msg.receiver : msg.sender;
+        const key = other + "_" + msg.itemId;
+
+        if (!chats[key]) {
+          chats[key] = {
+            user: other,
+            itemId: msg.itemId,
+            lastMessage: msg.text
+          };
+        }
+      });
+
+      Object.values(chats).forEach(chat => {
+        box.innerHTML += `
+          <div class="card p-3 mb-2 shadow" style="cursor:pointer"
+            onclick='openChat("${chat.itemId}", "${chat.user}")'>
+
+            <b>${chat.user}</b>
+            <p>${chat.lastMessage}</p>
+
+          </div>
+        `;
+      });
+
+    });
+}
+
+// OPEN CHAT
+function openChat(itemId, user) {
+  localStorage.setItem("chatItemId", itemId);
+  localStorage.setItem("chatUser", user);
+  localStorage.setItem("chatItem", JSON.stringify({ name: "Chat" }));
+
+  window.location.href = "chat.html";
+}
+</script>
+
+</body>
+</html>

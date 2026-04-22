@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+  <title>Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="container mt-4">
+
+<h3>Chat 💬</h3>
+
+<div id="itemDetails"></div>
+
+<div style="background:#25D366;color:white;padding:10px;border-radius:10px;margin-bottom:10px;">
+  <h5 id="chatTitle" style="margin:0;"></h5>
+</div>
+
+<div id="chatBox" style="height:300px;overflow-y:auto;border:1px solid #ccc;padding:10px;"></div>
+
+<div style="display:flex; gap:10px; margin-top:10px;">
+  <input id="message" class="form-control" placeholder="Type message...">
+  <button class="btn btn-success" onclick="sendMessage()">Send</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDY-2fpS9LqM8f92TOuHPpJO4FJuDOcp4U",
+  authDomain: "smartswap-5176e.firebaseapp.com",
+  projectId: "smartswap-5176e"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+// GET DATA
+let item = JSON.parse(localStorage.getItem("chatItem"));
+const itemId = String(localStorage.getItem("chatItemId"));
+let otherUser = localStorage.getItem("chatUser");
+
+let currentUser;
+
+// 🔥 FIX: If item is incomplete → fetch from Firestore
+if (!item || !item.price) {
+  firebase.firestore().collection("items").doc(itemId).get()
+  .then(doc => {
+    if (doc.exists) {
+      item = doc.data();
+
+      // update localStorage also
+      localStorage.setItem("chatItem", JSON.stringify(item));
+
+      showItemDetails();
+    }
+  });
+} else {
+  showItemDetails();
+}
+
+// ✅ DISPLAY FUNCTION
+function showItemDetails() {
+  document.getElementById("itemDetails").innerHTML = `
+    <h5>${item.name || "Item"}</h5>
+    <p>Price: ₹${item.price || "0"}</p>
+  `;
+
+  document.getElementById("chatTitle").innerText = item.name || "Chat";
+}
+
+// AUTH
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user.email;
+
+    if (!otherUser && item) {
+      otherUser = item.owner;
+    }
+
+    loadMessages();
+  }
+});
+
+// SEND MESSAGE
+function sendMessage() {
+  const text = document.getElementById("message").value.trim();
+  if (!text) return;
+
+  firebase.firestore().collection("messages").add({
+    sender: currentUser,
+    receiver: otherUser,
+    itemId: String(itemId),
+    text: text,
+    time: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  firebase.firestore().collection("notifications").add({
+    to: otherUser,
+    from: currentUser,
+    itemId: itemId,
+    itemName: item?.name || "Item",
+    message: text,
+    time: firebase.firestore.FieldValue.serverTimestamp(),
+    seen: false
+  });
+
+  document.getElementById("message").value = "";
+}
+
+// LOAD MESSAGES
+function loadMessages() {
+  const box = document.getElementById("chatBox");
+
+  firebase.firestore().collection("messages")
+    .orderBy("time", "asc")
+    .onSnapshot(snapshot => {
+
+      box.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+
+        if (
+          String(msg.itemId) === String(itemId) &&
+          (
+            (msg.sender === currentUser && msg.receiver === otherUser) ||
+            (msg.sender === otherUser && msg.receiver === currentUser)
+          )
+        ) {
+
+          const isMe = msg.sender === currentUser;
+
+          let timeText = "";
+          if (msg.time && msg.time.toDate) {
+            const date = msg.time.toDate();
+            timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+
+          box.innerHTML += `
+            <div style="display:flex; ${isMe ? 'justify-content:flex-end' : 'justify-content:flex-start'}; margin-bottom:10px;">
+              
+              <div style="
+                max-width:70%;
+                padding:10px;
+                border-radius:15px;
+                background:${isMe ? '#dcf8c6' : '#ffffff'};
+                box-shadow:0 1px 3px rgba(0,0,0,0.2);
+              ">
+                
+                <div style="font-size:14px;">${msg.text}</div>
+
+                <div style="font-size:10px; text-align:right; color:gray; margin-top:5px;">
+                  ${timeText}
+                </div>
+
+              </div>
+
+            </div>
+          `;
+        }
+      });
+
+      box.scrollTop = box.scrollHeight;
+    });
+}
+</script>
+
+</body>
+</html>
